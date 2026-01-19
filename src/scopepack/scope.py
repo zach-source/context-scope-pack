@@ -335,8 +335,39 @@ def chunk_prose(text: str) -> list[Chunk]:
     return chunks
 
 
-def chunk_text(text: str, file_type: str = "unknown") -> list[Chunk]:
-    """Chunk text based on detected file type."""
+def chunk_text(
+    text: str,
+    file_type: str = "unknown",
+    file_path: str | None = None,
+    use_ast: bool = True,
+) -> list[Chunk]:
+    """Chunk text based on detected file type.
+
+    Args:
+        text: The text content to chunk
+        file_type: Detected file type ("code", "doc", "config", etc.)
+        file_path: Optional file path for AST-based chunking (enables language detection)
+        use_ast: Whether to try AST-based chunking first (requires scopepack[ast])
+
+    Returns:
+        List of Chunk objects
+    """
+    # Try AST-based chunking first for code files
+    if use_ast and file_type == "code" and file_path:
+        try:
+            from .ast_chunker import chunk_with_ast, detect_language
+
+            language = detect_language(file_path)
+            if language:
+                chunks = chunk_with_ast(text, language)
+                if chunks:
+                    return chunks
+        except ImportError:
+            pass  # tree-sitter not installed, fall back to regex
+        except Exception:
+            pass  # AST parsing failed, fall back to regex
+
+    # Fallback to existing regex-based chunking
     if file_type == "code":
         return chunk_code(text)
     elif file_type in ("doc", "prose", "unknown"):
@@ -588,6 +619,7 @@ def compress_with_scope(
     embedder: Embedder,
     summarizer: Summarizer | None = None,
     file_type: str = "unknown",
+    file_path: str | None = None,
     alpha: float = 0.5,
     temperature: float = 2.0,
 ) -> str:
@@ -600,11 +632,12 @@ def compress_with_scope(
     5. Reassemble in order
 
     Args:
+        file_path: Optional file path for AST-based chunking
         alpha: Balance between semantic (1.0) and lexical (0.0). Default 0.5
         temperature: Score sharpening factor. Higher = more spread. Default 2.0
     """
     # 1. Chunk
-    chunks = chunk_text(text, file_type)
+    chunks = chunk_text(text, file_type, file_path=file_path)
 
     if not chunks:
         return text[: budget_tokens * 4]  # Fallback
@@ -736,6 +769,7 @@ def compress_with_scope_indexed(
     embedder: Embedder,
     summarizer: Summarizer | None = None,
     file_type: str = "unknown",
+    file_path: str | None = None,
     alpha: float = 0.5,
     temperature: float = 2.0,
 ) -> tuple[str, str]:
@@ -745,11 +779,12 @@ def compress_with_scope_indexed(
     The symbol index provides line number references for navigation.
 
     Args:
+        file_path: Optional file path for AST-based chunking
         alpha: Balance between semantic (1.0) and lexical (0.0). Default 0.5
         temperature: Score sharpening factor. Higher = more spread. Default 2.0
     """
     # 1. Chunk
-    chunks = chunk_text(text, file_type)
+    chunks = chunk_text(text, file_type, file_path=file_path)
 
     if not chunks:
         return text[: budget_tokens * 4], ""

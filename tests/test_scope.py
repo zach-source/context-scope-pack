@@ -328,9 +328,7 @@ class TestHybridScoring:
 
         # With pure lexical scoring, "cosine" should be in first chunk only
         # First chunk should have highest score
-        assert chunks_lexical[0].relevance_score == max(
-            c.relevance_score for c in chunks_lexical
-        )
+        assert chunks_lexical[0].relevance_score == max(c.relevance_score for c in chunks_lexical)
 
     def test_temperature_spreads_scores(self):
         """Higher temperature should increase differentiation between scores."""
@@ -406,9 +404,7 @@ class TestSmartTruncate:
     return combined"""
 
         # Target length that forces truncation but allows keyword lines
-        result = _smart_truncate(
-            text, target_len=250, query="cosine similarity semantic"
-        )
+        result = _smart_truncate(text, target_len=250, query="cosine similarity semantic")
 
         assert result is not None
         # Should preserve first line (signature)
@@ -473,9 +469,7 @@ class TestSmartTruncate:
     return final_total"""
 
         # Query that matches lines at beginning and end
-        result = _smart_truncate(
-            text, target_len=180, query="calculate_total final_total"
-        )
+        result = _smart_truncate(text, target_len=180, query="calculate_total final_total")
 
         assert result is not None
         # Should have snip marker
@@ -519,9 +513,7 @@ class TestCompressChunk:
         )
 
         # 60% compression ratio gives enough budget for keyword lines
-        result = compress_chunk(
-            chunk, ratio=0.6, summarizer=None, query="cosine semantic"
-        )
+        result = compress_chunk(chunk, ratio=0.6, summarizer=None, query="cosine semantic")
 
         # Should preserve keyword-matching lines
         assert "cosine" in result

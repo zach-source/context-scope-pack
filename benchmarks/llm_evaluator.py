@@ -312,8 +312,8 @@ def create_evaluator(
             aws_region=aws_region,
         )
 
-        # Use Claude 3 Haiku on Bedrock (usually enabled by default)
-        model = "us.anthropic.claude-3-haiku-20240307-v1:0"
+        # Use Claude 4.5 Haiku on Bedrock with cross-region inference
+        model = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
         print(f"Using Bedrock model: {model} in {aws_region}")
         return LLMEvaluator(client=client, model=model)

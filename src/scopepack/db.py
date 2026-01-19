@@ -18,9 +18,7 @@ from typing import Any
 import aiosqlite
 
 # Default cache directory
-DEFAULT_CACHE_DIR = Path(
-    os.environ.get("SCOPE_CACHE_DIR", "~/.cache/scopepack")
-).expanduser()
+DEFAULT_CACHE_DIR = Path(os.environ.get("SCOPE_CACHE_DIR", "~/.cache/scopepack")).expanduser()
 DB_PATH = DEFAULT_CACHE_DIR / "scopepack.db"
 
 
@@ -332,9 +330,7 @@ class CacheDB:
                 )
             return None
 
-    async def get_latest_session_for_project(
-        self, project_dir: str
-    ) -> SessionState | None:
+    async def get_latest_session_for_project(self, project_dir: str) -> SessionState | None:
         """Get the most recent session state for a project."""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -406,9 +402,7 @@ class CacheDB:
                 )
             await db.commit()
 
-    async def get_hot_files(
-        self, project_dir: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    async def get_hot_files(self, project_dir: str, limit: int = 10) -> list[dict[str, Any]]:
         """Get most frequently accessed files for a project."""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row

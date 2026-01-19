@@ -32,9 +32,7 @@ class QualityTestCase:
     questions: list[str]  # Questions an LLM should be able to answer
     expected_answers: list[str]  # Expected answers for LLM judging
     required_content: list[str]  # Content that MUST be preserved to answer questions
-    nice_to_have: list[str] = field(
-        default_factory=list
-    )  # Content that helps but isn't critical
+    nice_to_have: list[str] = field(default_factory=list)  # Content that helps but isn't critical
 
 
 # Test cases that verify key information is preserved
@@ -389,6 +387,7 @@ class QualityRunner:
                 embedder=self.embedder,
                 summarizer=None,
                 file_type=file.file_type,
+                file_path=str(file.path),  # Enable AST-based chunking
             )
         else:
             compressed, symbol_index = quick_compress_indexed(
@@ -418,9 +417,7 @@ class QualityRunner:
         total_nice = len(test_case.nice_to_have)
 
         # Calculate string-matching quality scores
-        required_retention = (
-            required_preserved / total_required if total_required else 1.0
-        )
+        required_retention = required_preserved / total_required if total_required else 1.0
         nice_retention = nice_preserved / total_nice if total_nice else 1.0
         string_match_quality = (required_retention * 0.7) + (nice_retention * 0.3)
 
@@ -451,15 +448,11 @@ class QualityRunner:
                 llm_evaluations = [{"error": str(e)}]
 
         # Overall quality: use LLM accuracy if available, otherwise string matching
-        overall_quality = (
-            llm_accuracy if llm_accuracy is not None else string_match_quality
-        )
+        overall_quality = llm_accuracy if llm_accuracy is not None else string_match_quality
 
         # LLM answerability: use LLM result if available
         if llm_accuracy is not None:
-            answerable = (
-                llm_accuracy >= 0.5
-            )  # At least half questions answered correctly
+            answerable = llm_accuracy >= 0.5  # At least half questions answered correctly
         else:
             answerable = required_preserved == total_required
 
@@ -486,9 +479,7 @@ class QualityRunner:
             file_type=file.file_type,
             original_tokens=original_tokens,
             compressed_tokens=compressed_tokens,
-            compression_ratio=(
-                compressed_tokens / original_tokens if original_tokens else 1.0
-            ),
+            compression_ratio=(compressed_tokens / original_tokens if original_tokens else 1.0),
             budget_tokens=budget,
             budget_adherence=compressed_tokens / budget if budget else 0.0,
             elapsed_ms=elapsed_ms,
@@ -535,8 +526,7 @@ class QualityRunner:
                 if (
                     scope_r.file_path == quick_r.file_path
                     and scope_r.budget_tokens == quick_r.budget_tokens
-                    and scope_r.scenario_name
-                    == quick_r.scenario_name.replace("quick", "scope")
+                    and scope_r.scenario_name == quick_r.scenario_name.replace("quick", "scope")
                 ):
                     scope_quality = scope_r.extra_data["overall_quality"]
                     quick_quality = quick_r.extra_data["overall_quality"]
@@ -548,9 +538,7 @@ class QualityRunner:
                     if scope_r.extra_data.get("llm_accuracy") is not None:
                         evaluation_mode = "llm"
                         scope_llm_scores.append(scope_r.extra_data["llm_accuracy"])
-                        quick_llm_scores.append(
-                            quick_r.extra_data.get("llm_accuracy", 0)
-                        )
+                        quick_llm_scores.append(quick_r.extra_data.get("llm_accuracy", 0))
 
                     if scope_quality > quick_quality:
                         scope_wins += 1
@@ -575,14 +563,10 @@ class QualityRunner:
             "ties": ties,
             "scope_win_rate": scope_wins / total if total else 0,
             "scope_avg_quality": (
-                sum(scope_quality_scores) / len(scope_quality_scores)
-                if scope_quality_scores
-                else 0
+                sum(scope_quality_scores) / len(scope_quality_scores) if scope_quality_scores else 0
             ),
             "quick_avg_quality": (
-                sum(quick_quality_scores) / len(quick_quality_scores)
-                if quick_quality_scores
-                else 0
+                sum(quick_quality_scores) / len(quick_quality_scores) if quick_quality_scores else 0
             ),
             "scope_questions_answerable": scope_answerable,
             "quick_questions_answerable": quick_answerable,
@@ -591,9 +575,7 @@ class QualityRunner:
 
         # Add LLM-specific metrics if available
         if scope_llm_scores:
-            summary["scope_avg_llm_accuracy"] = sum(scope_llm_scores) / len(
-                scope_llm_scores
-            )
+            summary["scope_avg_llm_accuracy"] = sum(scope_llm_scores) / len(scope_llm_scores)
             summary["quick_avg_llm_accuracy"] = (
                 sum(quick_llm_scores) / len(quick_llm_scores) if quick_llm_scores else 0
             )

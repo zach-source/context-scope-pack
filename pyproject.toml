@@ -46,8 +46,11 @@ dev = [
 bedrock = [
     "boto3>=1.34.0",
 ]
+ast = [
+    "tree-sitter-language-pack>=0.7.0",
+]
 all = [
-    "scopepack[dev,bedrock]",
+    "scopepack[dev,bedrock,ast]",
 ]
 
 [project.scripts]

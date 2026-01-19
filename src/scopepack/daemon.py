@@ -81,8 +81,7 @@ class Models:
                 )
                 cls._embedder_type = EMBEDDER_TYPE
                 logger.info(
-                    f"Embedding model loaded: {EMBEDDER_TYPE} "
-                    f"({cls._embedder.dimensions} dims)"
+                    f"Embedding model loaded: {EMBEDDER_TYPE} ({cls._embedder.dimensions} dims)"
                 )
             except Exception as e:
                 logger.error(f"Failed to load embedding model: {e}")
@@ -101,17 +100,11 @@ class Models:
                 loop = asyncio.get_event_loop()
 
                 def load_summarizer():
-                    model = AutoModelForSeq2SeqLM.from_pretrained(
-                        "sshleifer/distilbart-cnn-12-6"
-                    )
-                    tokenizer = AutoTokenizer.from_pretrained(
-                        "sshleifer/distilbart-cnn-12-6"
-                    )
+                    model = AutoModelForSeq2SeqLM.from_pretrained("sshleifer/distilbart-cnn-12-6")
+                    tokenizer = AutoTokenizer.from_pretrained("sshleifer/distilbart-cnn-12-6")
                     return model, tokenizer
 
-                cls._summarizer, cls._tokenizer = await loop.run_in_executor(
-                    None, load_summarizer
-                )
+                cls._summarizer, cls._tokenizer = await loop.run_in_executor(None, load_summarizer)
                 logger.info("Summarization model loaded")
             except Exception as e:
                 logger.error(f"Failed to load summarization model: {e}")
@@ -276,8 +269,7 @@ async def compress(request: CompressRequest):
             return CompressResponse(
                 compressed_text=cached.compressed_text,
                 original_tokens=cached.original_tokens or original_tokens,
-                compressed_tokens=cached.compressed_tokens
-                or len(cached.compressed_text) // 4,
+                compressed_tokens=cached.compressed_tokens or len(cached.compressed_text) // 4,
                 compression_ratio=cached.compression_ratio or 0.5,
                 cache_hit=True,
                 model_version=MODEL_VERSION,
@@ -308,6 +300,7 @@ async def compress(request: CompressRequest):
             embedder=embedder,
             summarizer=summarizer,
             file_type=file_type,
+            file_path=request.file_path,
         )
     except Exception as e:
         logger.warning(f"SCOPE compression failed, using quick fallback: {e}")
@@ -362,9 +355,7 @@ async def compress_quick(request: CompressRequest):
         symbol_index=symbol_index if symbol_index else None,
         original_tokens=original_tokens,
         compressed_tokens=compressed_tokens,
-        compression_ratio=(
-            compressed_tokens / original_tokens if original_tokens > 0 else 1.0
-        ),
+        compression_ratio=(compressed_tokens / original_tokens if original_tokens > 0 else 1.0),
         cache_hit=False,
         model_version="quick",
     )
@@ -392,9 +383,7 @@ async def summarize(request: SummarizeRequest):
 async def file_summary(request: FileSummaryRequest):
     """Get or create a file summary."""
     # Check cache
-    cached = await db.get_file_summary(
-        request.file_path, request.file_hash, MODEL_VERSION
-    )
+    cached = await db.get_file_summary(request.file_path, request.file_hash, MODEL_VERSION)
     if cached:
         return FileSummaryResponse(
             summary=cached.summary,
