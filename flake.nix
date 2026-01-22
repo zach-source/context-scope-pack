@@ -40,6 +40,8 @@
             aiosqlite
             pydantic
             numpy
+            # AST-based chunking (tree-sitter)
+            tree-sitter-language-pack
           ];
 
           # Skip tests during build (they require models)
