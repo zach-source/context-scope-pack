@@ -36,10 +36,32 @@ models-download  # First-time: download ML models (~500MB)
 db-init          # Initialize SQLite cache
 ```
 
+### Nix / Home Manager (Recommended)
+
+Declarative installation with automatic daemon service:
+
+```nix
+# flake.nix
+{
+  inputs.scopepack.url = "github:zach-source/context-scope-pack";
+}
+
+# home.nix
+{
+  imports = [ inputs.scopepack.homeManagerModules.default ];
+  programs.scopepack.enable = true;
+}
+```
+
+This installs hooks to `~/.claude/hooks/` and runs the daemon via launchd (macOS) or systemd (Linux).
+
+See [nix/README.md](nix/README.md) for full configuration options.
+
 ### Choose Your Integration
 
 | Use Case | Integration | Setup Time |
 |----------|-------------|------------|
+| Nix/Home Manager | [Nix Module](#nix--home-manager-recommended) | 1 min |
 | Claude Code CLI | [Hooks](#claude-code-cli-hooks) | 2 min |
 | Claude Desktop | [MCP Server](#mcp-server-claude-desktop) | 1 min |
 | Custom Agents (SDK) | [HTTP API](#claude-sdk-http-api) or [Python Library](#claude-sdk-python-library) | 5 min |
